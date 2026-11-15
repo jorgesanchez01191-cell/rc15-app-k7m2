@@ -36,19 +36,20 @@
   --shadow:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;font-weight:600;overflow:hidden}
-.phone{position:relative;height:100%}
-#app{position:relative;height:100%;overflow-y:auto;overflow-x:hidden;transform:translateZ(0);-webkit-overflow-scrolling:touch;
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;font-weight:600;overscroll-behavior-y:none}
+.phone{position:relative}
+#app{position:relative;min-height:100vh;min-height:100dvh;overflow-x:hidden;
   background:radial-gradient(120% 50% at 0% 0%,var(--bg1),transparent 60%),radial-gradient(90% 40% at 100% 15%,var(--bg3),transparent 60%),radial-gradient(100% 50% at 50% 100%,var(--bg2),transparent 60%),var(--bg);
   padding-top:env(safe-area-inset-top,0px)}
 .scrollpad{height:calc(110px + env(safe-area-inset-bottom,0px))}
 /* En computador: la app se ve dentro de un celular */
 @media (min-width:700px) and (min-height:640px){
-  body{background:radial-gradient(60% 60% at 20% 20%,#DDF3E6,transparent 70%),radial-gradient(60% 60% at 80% 80%,#E3F0F3,transparent 70%),#EEF6F1;display:grid;place-items:center}
+  html,body{height:100%}
+  body{overflow:hidden;background:radial-gradient(60% 60% at 20% 20%,#DDF3E6,transparent 70%),radial-gradient(60% 60% at 80% 80%,#E3F0F3,transparent 70%),#EEF6F1;display:grid;place-items:center}
   .phone{width:400px;height:min(860px,calc(100vh - 48px));border-radius:54px;padding:12px;background:linear-gradient(145deg,#2C3E35,#13201A);box-shadow:0 30px 80px rgba(20,60,40,.35),inset 0 0 0 2px #46594F}
   .phone::before{content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);width:110px;height:28px;border-radius:20px;background:#0B130F;z-index:200}
-  #app{border-radius:42px}
+  #app{border-radius:42px;height:100%;min-height:0;overflow-y:auto;transform:translateZ(0)}
   .phone-note{display:block}
 }
 .phone-note{display:none;position:fixed;bottom:16px;left:0;right:0;text-align:center;font-size:.8rem;color:#5F7D70}
@@ -383,6 +384,8 @@ const DATES=[
 "use strict";
 const $=s=>document.querySelector(s);
 const APP=document.getElementById("app");
+const FRAMED=()=>matchMedia("(min-width:700px) and (min-height:640px)").matches;
+const SC={to(o){(FRAMED()?APP:window).scrollTo(o)},lock(v){(FRAMED()?APP:document.body).style.overflow=v},w(){return FRAMED()?APP.clientWidth:innerWidth},h(){return FRAMED()?APP.clientHeight:innerHeight}};
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let UQ=0;const uq=k=>{const s=IC[k]||"";const n=++UQ;return s.replace(/id="([^"]+)"/g,'id="$1_'+n+'"').replace(/url\(#([^)]+)\)/g,'url(#$1_'+n+')').replace(/href="#([^"]+)"/g,'href="#$1_'+n+'"')};
 const ic=(k,px,cls)=>`<span class="ic${cls?" "+cls:""}" style="width:${px}px;height:${px}px">${uq(k)}</span>`;
@@ -406,8 +409,8 @@ const QIC={risas:"laugh",recuerdos:"camera",suenos:"shoot",dinero:"house",famili
 const WEEKS=[["Semana 1","Volver a mirarse","star","linear-gradient(135deg,#7ED7A8,#3FA877)"],["Semana 2","Volver a hablar","chat","linear-gradient(135deg,#6CCDC6,#2E8F82)"],["Semana 3","Volver a elegirse","sparkheart","linear-gradient(135deg,#FFCF6B,#F0A12A)"]];
 
 /* Confeti */
-function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const c=$("#confetti");c.hidden=false;c.width=APP.clientWidth;c.height=APP.clientHeight;const g=c.getContext("2d");
- const cols=["#5CC492","#FFC94D","#F28CA8","#3AA6A0","#A8EBC8","#FFB38A"];const P=Array.from({length:120},()=>({x:APP.clientWidth/2,y:APP.clientHeight*.55,vx:(Math.random()-.5)*14,vy:-Math.random()*16-6,s:6+Math.random()*7,c:cols[Math.floor(Math.random()*cols.length)],r:Math.random()*6,vr:(Math.random()-.5)*.4,h:Math.random()<.25}));
+function confetti(){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const c=$("#confetti");c.hidden=false;c.width=SC.w();c.height=SC.h();const g=c.getContext("2d");
+ const cols=["#5CC492","#FFC94D","#F28CA8","#3AA6A0","#A8EBC8","#FFB38A"];const P=Array.from({length:120},()=>({x:SC.w()/2,y:SC.h()*.55,vx:(Math.random()-.5)*14,vy:-Math.random()*16-6,s:6+Math.random()*7,c:cols[Math.floor(Math.random()*cols.length)],r:Math.random()*6,vr:(Math.random()-.5)*.4,h:Math.random()<.25}));
  let t=0;(function f(){g.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.45;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;if(p.h){g.font=p.s*2.4+"px sans-serif";g.fillText("♥",0,0)}else g.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66);g.restore()});t++;if(t<110)requestAnimationFrame(f);else{c.hidden=true}})()}
 
 /* Fases y días */
@@ -420,7 +423,8 @@ function stats(){$("#streakN").textContent=doneCount()+"/15";$("#giftN").textCon
 
 /* Onboarding */
 let ob={qi:0,ans:S.answers.length===12?S.answers.slice():[]};
-function onb(step){const box=$("#onbIn");$("#onb").hidden=false;APP.style.overflow="hidden";$("#onb").scrollTop=0;
+function onb(step){const box=$("#onbIn");
+ const nav1=()=>`<div class="row" style="justify-content:space-between"><button class="back" type="button" data-p>${BACK}Atrás</button><button class="back" type="button" data-exit>Salir ✕</button></div>`;$("#onb").hidden=false;SC.lock("hidden");$("#onb").scrollTop=0;
  const prog=p=>`<div class="bar" aria-hidden="true"><i style="width:${p}%"></i></div>`;
  if(step===0){box.innerHTML=`<div style="display:grid;gap:18px;padding-top:4vh;justify-items:center;text-align:center">
    <div class="float" style="width:150px;height:150px">${uq("growing")}</div>
@@ -428,22 +432,23 @@ function onb(step){const box=$("#onbIn");$("#onb").hidden=false;APP.style.overfl
    <p class="muted" style="font-size:1.08rem;max-width:30ch">10 minutos al día para volver a sentirte cerca de tu pareja. <b style="color:var(--ink)">Lo haces tú, aunque él no participe.</b></p>
    <div class="glass" style="width:100%;text-align:left;gap:10px">
     <div class="row" style="flex-wrap:nowrap">${ic("thermo",34)}<span>Test de 2 minutos</span></div><div class="row" style="flex-wrap:nowrap">${ic("target",34)}<span>Plan personalizado de 15 días</span></div><div class="row" style="flex-wrap:nowrap">${ic("gift",34)}<span>Un detalle y una pregunta cada día</span></div></div>
-   <button class="b3 block" type="button" data-n>¡Empecemos! ${ic("sparkles",26)}</button>
+   <button class="b3 block" type="button" data-n>¡Empecemos con el test! ${ic("sparkles",26)}</button>
+   <button class="b3 white block" type="button" data-explore>Primero quiero ver la app</button>
    <p class="legal">Tus respuestas se guardan solo en este celular.</p></div>`;}
- if(step===1){box.innerHTML=`${prog(8)}<div class="row">${ic("twoh",56,"float")}<div><p class="lbl">Antes de empezar</p><h2 class="bigq">¿Cómo se llaman?</h2></div></div>
+ if(step===1){box.innerHTML=`${nav1()}${prog(8)}<div class="row">${ic("twoh",56,"float")}<div><p class="lbl">Antes de empezar</p><h2 class="bigq">¿Cómo se llaman?</h2></div></div>
    <div class="field"><label for="oMe">Tu nombre</label><input id="oMe" type="text" value="${esc(S.me)}" placeholder="Ej.: Natalia" autocomplete="given-name"></div>
    <div class="field"><label for="oHim">Nombre o apodo de tu pareja</label><input id="oHim" type="text" value="${esc(S.him)}" placeholder="Ej.: Andrés, mi amor, gordo…"></div>
    <button class="opt" type="button" id="oFaith" aria-pressed="${S.faith}">${ic("pray",38)}<span>Incluir una reflexión de fe cada día<small>Puedes cambiarlo después</small></span></button>
    <button class="b3 block" type="button" data-n>Seguir al test</button>`;
    $("#oFaith").onclick=e=>{S.faith=!S.faith;e.currentTarget.setAttribute("aria-pressed",S.faith)};}
- if(step===2){const i=ob.qi;box.innerHTML=`<div class="row" style="justify-content:space-between"><button class="back" type="button" data-p>${BACK}Atrás</button><span class="lbl">${i+1} de 12</span></div>${prog(10+i*6.5)}
+ if(step===2){const i=ob.qi;box.innerHTML=`<div class="row" style="justify-content:space-between"><button class="back" type="button" data-p>${BACK}Atrás</button><span class="lbl">${i+1} de 12</span><button class="back" type="button" data-exit>Salir ✕</button></div>${prog(10+i*6.5)}
    <div style="display:grid;justify-items:center">${ic("thermo",70,"float")}</div><h2 class="bigq" style="text-align:center">${esc(TEST[i])}</h2><div style="display:grid;gap:12px" id="oScale"></div>`;
    const faces=["😕","🙂","😊","😍"];SCALE.forEach((s,v)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.innerHTML=`<span style="font-size:1.6rem">${faces[v]}</span>${s}`;b.setAttribute("aria-pressed",ob.ans[i]===v);b.onclick=()=>{ob.ans[i]=v;b.setAttribute("aria-pressed","true");setTimeout(()=>{if(ob.qi<11){ob.qi++;onb(2)}else onb(3)},200)};$("#oScale").appendChild(b)});}
- if(step===3){box.innerHTML=`${prog(88)}<div style="display:grid;justify-items:center">${ic("ribbon",64)}</div><div><p class="lbl" style="text-align:center">Una pregunta importante</p><h2 class="bigq" style="margin-top:6px;text-align:center">¿Alguna vez has sentido miedo de tu pareja, o te ha golpeado, amenazado o controlado tu dinero o tus salidas?</h2></div>
+ if(step===3){box.innerHTML=`${nav1()}${prog(88)}<div style="display:grid;justify-items:center">${ic("ribbon",64)}</div><div><p class="lbl" style="text-align:center">Una pregunta importante</p><h2 class="bigq" style="margin-top:6px;text-align:center">¿Alguna vez has sentido miedo de tu pareja, o te ha golpeado, amenazado o controlado tu dinero o tus salidas?</h2></div>
    <div style="display:grid;gap:12px"><button class="opt" type="button" data-safe="no">No</button><button class="opt" type="button" data-safe="si">Sí</button></div>
    <p class="note" style="text-align:center">Te lo preguntamos para cuidarte. Tu respuesta no sale de este celular.</p>`;
    box.querySelectorAll("[data-safe]").forEach(b=>b.onclick=()=>{S.safety=b.dataset.safe==="si";save();onb(S.safety?9:4)});}
- if(step===4||step===5){const me=step===4;box.innerHTML=`${prog(me?92:96)}<div class="row">${ic(me?"sparkheart":"twoh",56,"float")}<div><p class="lbl">Lenguajes del amor</p><h2 class="bigq">${me?"¿Qué te hace sentir más amada a ti?":"¿Y qué hace sentir amado a "+esc(HIM())+"?"}</h2></div></div>${me?"":`<p class="muted">Pista: fíjate de qué se queja o qué hace él por ti.</p>`}<div style="display:grid;gap:12px" id="oL"></div>`;
+ if(step===4||step===5){const me=step===4;box.innerHTML=`${nav1()}${prog(me?92:96)}<div class="row">${ic(me?"sparkheart":"twoh",56,"float")}<div><p class="lbl">Lenguajes del amor</p><h2 class="bigq">${me?"¿Qué te hace sentir más amada a ti?":"¿Y qué hace sentir amado a "+esc(HIM())+"?"}</h2></div></div>${me?"":`<p class="muted">Pista: fíjate de qué se queja o qué hace él por ti.</p>`}<div style="display:grid;gap:12px" id="oL"></div>`;
    Object.entries(LANGS).forEach(([k,l])=>{const b=document.createElement("button");b.type="button";b.className="opt";b.innerHTML=`${ic(LANGIC[k],38)}<span>${l.name}${me?"":`<small>${l.hint}</small>`}</span>`;b.setAttribute("aria-pressed",(me?S.langMe:S.langHim)===k);b.onclick=()=>{if(me)S.langMe=k;else S.langHim=k;save();b.setAttribute("aria-pressed","true");setTimeout(()=>onb(step+1),180)};$("#oL").appendChild(b)});}
  if(step===6){const sc=score(ob.ans);S.answers=ob.ans.slice();S.score=sc;S.phase=phaseOf(sc);S.started=S.started||today();save();const P=PHASES[S.phase];
    box.innerHTML=`${prog(100)}<div class="glass hero" style="text-align:center;justify-items:center;gap:10px"><p class="lbl">Tu resultado</p>${ic(PHASEIC[S.phase],110,"float")}<h2 style="font-size:1.9rem">${P.name}</h2><p style="opacity:.94">${P.text}</p><span class="tag">Termómetro: ${sc} de 36</span></div>
@@ -459,8 +464,11 @@ function onb(step){const box=$("#onbIn");$("#onb").hidden=false;APP.style.overfl
    <button class="b3 white block" type="button" data-redo>Me equivoqué al responder</button>`;
    box.querySelector("[data-redo]").onclick=()=>{S.safety=false;save();onb(3)};}
  const n=box.querySelector("[data-n]");if(n)n.onclick=()=>{if(step===1){S.me=$("#oMe").value.trim();S.him=$("#oHim").value.trim();save();ob.qi=0;onb(2)}else onb(step+1)};
- const p=box.querySelector("[data-p]");if(p)p.onclick=()=>{if(ob.qi>0){ob.qi--;onb(2)}else onb(1)};}
-function closeOnb(){$("#onb").hidden=true;APP.style.overflow=""}
+ const p=box.querySelector("[data-p]");if(p)p.onclick=()=>{if(step===1)onb(0);else if(step===2){if(ob.qi>0){ob.qi--;onb(2)}else onb(1)}else if(step===3){ob.qi=11;onb(2)}else onb(step-1)};
+ const x=box.querySelector("[data-exit]");if(x)x.onclick=exploreApp;
+ const ex=box.querySelector("[data-explore]");if(ex)ex.onclick=exploreApp;}
+function exploreApp(){S.preview=true;save();closeOnb();location.hash="";route();if(!S.onboarded)toast("Puedes hacer el test cuando quieras desde Inicio")}
+function closeOnb(){$("#onb").hidden=true;SC.lock("")}
 
 /* Contenido de un día */
 function dayHTML(d){const D=DAYS[d-1],soft=S.phase==="cuarto",L=S.langHim||"palabras",det=DETAILS[L][(d-1)%8],done=S.done[d];
@@ -503,9 +511,10 @@ function wireCheck(root){root.querySelectorAll("[data-ck]").forEach(box=>{const 
 /* Vistas */
 function ringSVG(n){return`<div class="ring"><svg viewBox="0 0 36 36"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FDDB5"/><stop offset="1" stop-color="#2E8F82"/></linearGradient></defs><circle cx="18" cy="18" r="15" fill="none" stroke="rgba(42,125,86,.13)" stroke-width="4.5"/><circle cx="18" cy="18" r="15" fill="none" stroke="url(#rg)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="${(n/15*94.2).toFixed(1)} 94.2"/></svg><b>${n}/15</b></div>`}
 function renderHoy(){const box=$("#hoyBox"),c=current(),n=doneCount(),P=PHASES[S.phase||"piloto"];
- const head=`<div class="hello">${ringSVG(n)}<div style="min-width:0"><p class="lbl">${new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})}</p><h1 style="font-size:1.8rem">¡Hola${S.me?", "+esc(S.me):""}!</h1><span class="tag tagp">${ic(PHASEIC[S.phase||"piloto"],20)} ${P.name}</span></div></div>`;
+ const head=`<div class="hello">${ringSVG(n)}<div style="min-width:0"><p class="lbl">${new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})}</p><h1 style="font-size:1.8rem">¡Hola${S.me?", "+esc(S.me):""}!</h1>${S.onboarded?`<span class="tag tagp">${ic(PHASEIC[S.phase||"piloto"],20)} ${P.name}</span>`:`<span class="tag tagp">Bienvenida 💚</span>`}</div></div>`;
  let today;
- if(c>15)today=`<div class="glass hero todaycard">${ic("trophy",86,"float")}<div style="display:grid;gap:8px"><span class="status">🏆 Reto completo</span><h2 style="font-size:1.45rem">¡Lo lograste!</h2><button class="b3 gold sm" type="button" data-retest>Repetir el test</button></div></div>`;
+ if(!S.onboarded)today=`<div class="glass hero todaycard">${ic("thermo",86,"float")}<div style="display:grid;gap:8px;min-width:0"><span class="status">Paso 1</span><h2 style="font-size:1.35rem">Haz tu test de 2 minutos</h2><p style="opacity:.92;font-size:.9rem">Con tus respuestas armamos tu plan de 15 días.</p><button class="b3 white sm" type="button" data-dotest>Hacer el test →</button></div></div>`;
+ else if(c>15)today=`<div class="glass hero todaycard">${ic("trophy",86,"float")}<div style="display:grid;gap:8px"><span class="status">🏆 Reto completo</span><h2 style="font-size:1.45rem">¡Lo lograste!</h2><button class="b3 gold sm" type="button" data-retest>Repetir el test</button></div></div>`;
  else if(!available(c))today=`<div class="glass hero todaycard">${ic("party",86,"float")}<div style="display:grid;gap:6px"><span class="status">✓ Día ${c-1} completo</span><h2 style="font-size:1.35rem">Mañana: ${DAYS[c-1].t}</h2><p style="opacity:.92;font-size:.9rem">Vuelve mañana para abrir el día ${c}.</p></div></div>`;
  else{const ck=(S.check||{})[c];today=`<div class="glass hero todaycard">${ic(DAYIC[c-1],86,"float")}<div style="display:grid;gap:6px;min-width:0"><span class="status">${ck&&ck.a==="no"?"⏳ Lo intentas hoy":"● Día "+c+" de 15 · pendiente"}</span><h2 style="font-size:1.4rem">${DAYS[c-1].t}</h2><button class="b3 white sm" type="button" data-openday="${c}">Abrir mi día ${c} →</button></div></div>`}
  const T=[["target","Mi día","#EAF7EF","#C6E2D2","day"],["star","Camino","#FFF6DB","#EBD8A6","go:plan"],["rosa","Rompehielos","#FDEAF0","#EBC3D0","go:detalles"],
@@ -517,10 +526,11 @@ function renderHoy(){const box=$("#hoyBox"),c=current(),n=doneCount(),P=PHASES[S
   `<div class="glass tip-day">${ic("bulb",44)}<div><p class="lbl">Idea del día</p><p>${tipD.r}</p></div></div>
    <div class="glass tip-day">${ic("gift",44)}<div style="min-width:0"><p class="lbl">Detalle rápido para ${esc(HIM())}</p><p>${DETAILS[S.langHim||"palabras"][((c>15?15:c)-1)%8]}</p></div></div>`;
  box.querySelectorAll("[data-openday]").forEach(b=>b.onclick=()=>openDay(+b.dataset.openday));
+ box.querySelectorAll("[data-dotest]").forEach(b=>b.onclick=()=>{ob={qi:0,ans:[]};onb(1)});
  box.querySelectorAll("[data-retest]").forEach(b=>b.onclick=retest);
  box.querySelectorAll("[data-tl]").forEach(b=>b.onclick=()=>{const v=b.dataset.tl;
-  if(v==="day"){if(c<=15&&available(c))openDay(c);else if(c>15)toast("¡Ya completaste los 15 días! 🏆");else toast("El día "+c+" se abre mañana 🌙")}
-  else if(v==="retest")retest();else if(v.startsWith("go:"))go(v.slice(3));else if(v.startsWith("ideas:")){seg(v.slice(6));go("ideas")}})}
+  if(v==="day"){if(!S.onboarded){onb(1)}else if(c<=15&&available(c))openDay(c);else if(c>15)toast("¡Ya completaste los 15 días! 🏆");else toast("El día "+c+" se abre mañana 🌙")}
+  else if(v==="retest"){if(S.onboarded)retest();else onb(1)}else if(v.startsWith("go:"))go(v.slice(3));else if(v.startsWith("ideas:")){seg(v.slice(6));go("ideas")}})}
 function renderPlan(){const c=current(),n=doneCount();$("#planSub").textContent=`${n} de 15 pasos completados. Se abre uno nuevo cada día.`;$("#planBar").style.width=(n/15*100)+"%";
  const path=$("#path");path.innerHTML="";const OFF=[0,55,85,55,0];
  for(let d=1;d<=15;d++){if((d-1)%5===0){const w=WEEKS[(d-1)/5];const el=document.createElement("div");el.className="week";el.style.background=w[3];el.innerHTML=`${ic(w[2],44)}<div><b>${w[0]}: ${w[1]}</b><small>Días ${d} a ${d+4}</small></div>`;path.appendChild(el)}
@@ -554,22 +564,22 @@ function renderYo(){const box=$("#yoBox"),P=PHASES[S.phase||"piloto"],n=doneCoun
  $("#sFaith").onclick=e=>{S.faith=!S.faith;save();e.currentTarget.setAttribute("aria-pressed",S.faith)};
  $("#sUnlock").onclick=e=>{S.unlockAll=!S.unlockAll;save();e.currentTarget.setAttribute("aria-pressed",S.unlockAll)};
  let armed2=false;$("#sRestart").onclick=e=>{if(!armed2){armed2=true;e.currentTarget.textContent="Toca otra vez para reiniciar desde el día 1";return}S.done={};S.check={};S.journal={};S.retest=null;save();toast("Reto reiniciado 🌱");location.hash=""};
- $("#sRetest").onclick=()=>{S.onboarded=false;ob={qi:0,ans:[]};save();onb(1)};
+ $("#sRetest").onclick=()=>{ob={qi:0,ans:[]};onb(1)};
  let armed=false;$("#sReset").onclick=e=>{if(!armed){armed=true;e.currentTarget.textContent="Toca otra vez para borrar todo";e.currentTarget.style.color="#B3261E";return}try{localStorage.removeItem(KEY)}catch(x){}location.hash="";location.reload()}}
 function retest(){ob={qi:0,ans:[]};onbRetest()}
-function onbRetest(){const box=$("#onbIn");$("#onb").hidden=false;APP.style.overflow="hidden";const i=ob.qi;
+function onbRetest(){const box=$("#onbIn");$("#onb").hidden=false;SC.lock("hidden");const i=ob.qi;
  box.innerHTML=`<div class="row" style="justify-content:space-between"><button class="back" type="button" id="rb">${BACK}${i?"Atrás":"Cancelar"}</button><span class="lbl">Volver a medir · ${i+1} de 12</span></div><div class="bar"><i style="width:${(i/12*100).toFixed(0)}%"></i></div><div style="display:grid;justify-items:center">${ic("thermo",70,"float")}</div><h2 class="bigq" style="text-align:center">${esc(TEST[i])}</h2><div style="display:grid;gap:12px" id="rs"></div>`;
  const faces=["😕","🙂","😊","😍"];SCALE.forEach((s,v)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.innerHTML=`<span style="font-size:1.6rem">${faces[v]}</span>${s}`;b.onclick=()=>{ob.ans[i]=v;b.setAttribute("aria-pressed","true");setTimeout(()=>{if(ob.qi<11){ob.qi++;onbRetest()}else{S.retest={score:score(ob.ans),date:today()};save();closeOnb();go("yo");confetti();toast("Resultado guardado ✓")}},200)};$("#rs").appendChild(b)});
  $("#rb").onclick=()=>{if(ob.qi>0){ob.qi--;onbRetest()}else closeOnb()}}
 
 /* Página de un día */
 let openedHere=false;
-function openDay(d){const h="dia-"+d;if(location.hash!=="#"+h){openedHere=true;location.hash=h}else renderDayPage(d)}
+function openDay(d){if(!S.onboarded){toast("Primero haz tu test de 2 minutos para armar tu plan");onb(1);return}const h="dia-"+d;if(location.hash!=="#"+h){openedHere=true;location.hash=h}else renderDayPage(d)}
 function renderDayPage(d){if(!available(d)){location.hash="plan";return}const pg=$("#page");
  pg.innerHTML=`<div class="pbar in"><button class="back" type="button" data-back>${BACK}Volver</button><button class="homebtn" type="button" data-home aria-label="Ir al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button></div><div class="in view" style="padding-top:0">${dayHTML(d)}</div>`;
  wireDay(pg);pg.querySelector("[data-back]").onclick=goBack;pg.querySelector("[data-home]").onclick=()=>{openedHere=false;location.hash=""};
- if(pg.hidden){pg.hidden=false;pg.scrollTop=0;requestAnimationFrame(()=>pg.classList.add("on"));APP.style.overflow="hidden"}}
-function closePage(){const pg=$("#page");pg.classList.remove("on");setTimeout(()=>{pg.hidden=true},280);APP.style.overflow=""}
+ if(pg.hidden){pg.hidden=false;pg.scrollTop=0;requestAnimationFrame(()=>pg.classList.add("on"));SC.lock("hidden")}}
+function closePage(){const pg=$("#page");pg.classList.remove("on");setTimeout(()=>{pg.hidden=true},280);SC.lock("")}
 function goBack(){if(openedHere){openedHere=false;history.back()}else location.hash="plan"}
 
 /* Rompehielos: tarjeta con ilustración 3D */
@@ -628,14 +638,14 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("#sheet").hid
 
 /* Navegación */
 const VIEWS=["hoy","plan","detalles","ideas","yo"];let curView="hoy";
-function show(v){document.querySelectorAll("[data-v]").forEach(s=>s.hidden=s.id!=="v-"+v);document.querySelectorAll(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.go===v?"page":"false"));render(v);APP.scrollTo({top:0})}
+function show(v){document.querySelectorAll("[data-v]").forEach(s=>s.hidden=s.id!=="v-"+v);document.querySelectorAll(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.go===v?"page":"false"));render(v);SC.to({top:0})}
 function render(v){v=v||curView;curView=v;stats();if(v==="hoy")renderHoy();if(v==="plan")renderPlan();if(v==="detalles")renderGifts();if(v==="ideas")seg(document.querySelector("[data-seg][aria-pressed=true]").dataset.seg);if(v==="yo")renderYo()}
 function go(v){const h=v==="hoy"?"":v;if(location.hash.slice(1)===h)show(v);else location.hash=h}
 function route(){const h=location.hash.slice(1);const m=h.match(/^dia-(\d{1,2})$/);if(m){renderDayPage(+m[1]);return}if(!$("#page").hidden)closePage();show(VIEWS.includes(h)?h:"hoy")}
 window.addEventListener("hashchange",route);
 document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b){if(!$("#sheet").hidden)closeSheet();go(b.dataset.go)}});
 
-if(!S.onboarded){route();onb(S.safety?9:0)}else route();
+if(!S.onboarded&&!S.preview){route();onb(S.safety?9:0)}else route();
 })();
 </script>
 
